@@ -20,3 +20,5 @@ Imports:
     progressr
 Suggests:
     Synth
+URL: https://github.com/helske/robustSynth
+BugReports: https://github.com/helske/robustSynth/issues
