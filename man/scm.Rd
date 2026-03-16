@@ -55,17 +55,17 @@ and \code{loss.v} instead of \code{v} and \code{loss_v}. Default is \code{FALSE}
 \code{TRUE} allows the use of \code{robustSynth} as a drop-in replacement for \code{Synth}.}
 }
 \description{
-Estimates synthetic control using multiple initializations for predictor
-weights to improve the convergence to global optimum. This can be
-parallelized using \code{\link[future:plan]{future::plan()}}, with automatic progress reporting by
-\code{\link[progressr:with_progress]{progressr::with_progress()}} (see examples below).
+Estimates synthetic control using multiple initial values for predictor
+weights to improve the probability of convergence to the global optimum.
+This can be parallelized using \code{\link[future:plan]{future::plan()}}, with automatic progress
+reporting by \code{\link[progressr:with_progress]{progressr::with_progress()}} (see examples below).
 }
 \details{
 In contrast to the original Synth package, this implementation uses a
 computationally more efficient quadratic programming of \code{\link[limSolve:lsei]{limSolve::lsei()}}
-donor weight optimization and optimization algorithms of \code{nloptr} for
+for donor weight optimization, and optimization algorithms of \code{nloptr} for
 predictor weight optimization. By default, both solver types of
-\code{\link[limSolve:lsei]{limSolve::lsei()}} are used the one with better solution is picked. For
+\code{\link[limSolve:lsei]{limSolve::lsei()}} are used and the one with better solution is picked. For
 \code{\link[nloptr:nloptr]{nloptr::nloptr()}}, the default optimization algorithm is the
 derivative-free \code{NLOPT_LN_SBPLX}.
 

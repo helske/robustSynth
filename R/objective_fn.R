@@ -39,7 +39,7 @@ objective_fn <- function(v, X0, X1, Z0, Z1, scale, qp_control, type,
     out <- crossprod(Z1 - Z0 %*% opt$X)[1] / scale
   } else {
     out <- list(
-      w = opt$X, v = v / sum(v), value = opt$solutionNorm
+      w = opt$X, v = v, value = opt$solutionNorm
     )
   }
   out

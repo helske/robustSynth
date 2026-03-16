@@ -1,15 +1,15 @@
 #' Robust Synthetic Control
 #'
-#' Estimates synthetic control using multiple initializations for predictor
-#' weights to improve the convergence to global optimum. This can be
-#' parallelized using [future::plan()], with automatic progress reporting by
-#' [progressr::with_progress()] (see examples below).
+#' Estimates synthetic control using multiple initial values for predictor
+#' weights to improve the probability of convergence to the global optimum.
+#' This can be parallelized using [future::plan()], with automatic progress
+#' reporting by [progressr::with_progress()] (see examples below).
 #'
 #' In contrast to the original Synth package, this implementation uses a
 #' computationally more efficient quadratic programming of [limSolve::lsei()]
-#' donor weight optimization and optimization algorithms of `nloptr` for
+#' for donor weight optimization, and optimization algorithms of `nloptr` for
 #' predictor weight optimization. By default, both solver types of
-#' [limSolve::lsei()] are used the one with better solution is picked. For
+#' [limSolve::lsei()] are used and the one with better solution is picked. For
 #' [nloptr::nloptr()], the default optimization algorithm is the
 #' derivative-free `NLOPT_LN_SBPLX`.
 #'
@@ -188,6 +188,7 @@ scm <- function(data,
 
   if (is.null(fixed_v)) {
 
+    # solution using the initial values of v (default is uniform)
     solution <- run_nloptr(
       v, X0, X1, Z0, Z1, scale_factor_v, nloptr_control, qp_control
     )
@@ -197,127 +198,127 @@ scm <- function(data,
         sd_x^2, X0, X1, Z0, Z1, scale_factor_v,
         nloptr_control, qp_control
       )
-    if (solution$status >= 0 && solution0$status >= 0 &&
-        solution0$objective < solution$objective) {
-      solution <- solution0
+      if (solution$status >= 0 && solution0$status >= 0 &&
+          solution0$objective < solution$objective) {
+        solution <- solution0
+      }
     }
-  }
-  if (trials > 1) {
-    p <- progressr::progressor(trials)
-    more_solutions <- future.apply::future_lapply(
-      seq_len(trials - 1), \(i) {
-        p()
-        # Dirichlet(alpha)
-        v <- stats::rgamma(K, alpha, 1)
-        v <- v / sum(v)
-        solution <- run_nloptr(
-          v, X0, X1, Z0, Z1, scale_factor_v, nloptr_control, qp_control
-        )
-      },
-      future.seed = TRUE
-    )
-    solutions <- c(list(solution), more_solutions)
-    return_codes <- unlist(lapply(solutions, \(opt) opt$status))
-    values <- unlist(lapply(solutions, \(opt) opt$objective)) * scale_factor_v / T_pre
-    opt <- solutions[[which.min(values + 1e100 * (return_codes < 0))]]
-    qp_types <- unlist(lapply(solutions, \(opt) opt$qp_type))
-    best_qp_type <- opt$qp_type
-  } else {
-    opt <- solution
-    return_codes <- opt$status
-    values <- opt$objective * scale_factor_v / T_pre
-    qp_types <- opt$qp_type
-    best_qp_type <- opt$qp_type
-  }
-  if (!is.finite(opt$objective) || opt$status < 0) {
-    error_msg <- paste0(
-      "Optimization did not converge, ",
-      "converge code from first run of 'nloptr': ",
-      solution$message, "."
-    )
-    stop (error_msg)
-  }
-  v <- opt$solution
-  out <- objective_fn(
-    v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
-    type = if (best_qp_type == "lsei") 1 else 2, estimate = FALSE
-  )
-} else {
-  return_codes <- NULL
-  values <- NULL
-  opt <- NULL
-  qp_types <- NULL
-  if (qp_control$qp_type == "both") {
-    opt_lsei <- objective_fn(
-      v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
-      type = 1, estimate = FALSE
-    )
-    opt_solveQP <- objective_fn(
-      v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
-      type = 2, estimate = FALSE
-    )
-    out <- pick_qp_solution(opt_lsei, opt_solveQP)
-  } else {
-    type <- if (qp_control$qp_type == "lsei") 1 else 2
+    if (trials > 1) {
+      p <- progressr::progressor(trials)
+      more_solutions <- future.apply::future_lapply(
+        seq_len(trials - 1), \(i) {
+          p()
+          # Dirichlet(alpha)
+          v <- stats::rgamma(K, alpha, 1)
+          v <- v / sum(v)
+          solution <- run_nloptr(
+            v, X0, X1, Z0, Z1, scale_factor_v, nloptr_control, qp_control
+          )
+        },
+        future.seed = TRUE
+      )
+      solutions <- c(list(solution), more_solutions)
+      return_codes <- unlist(lapply(solutions, \(opt) opt$status))
+      values <- unlist(lapply(solutions, \(opt) opt$objective)) * scale_factor_v / T_pre
+      opt <- solutions[[which.min(values + 1e100 * (return_codes < 0))]]
+      qp_types <- unlist(lapply(solutions, \(opt) opt$qp_type))
+      best_qp_type <- opt$qp_type
+    } else {
+      opt <- solution
+      return_codes <- opt$status
+      values <- opt$objective * scale_factor_v / T_pre
+      qp_types <- opt$qp_type
+      best_qp_type <- opt$qp_type
+    }
+    if (!is.finite(opt$objective) || opt$status < 0) {
+      error_msg <- paste0(
+        "Optimization did not converge, ",
+        "converge code from first run of 'nloptr': ",
+        solution$message, "."
+      )
+      stop (error_msg)
+    }
+    v <- opt$solution
     out <- objective_fn(
       v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
-      type = type, estimate = FALSE
+      type = if (best_qp_type == "lsei") 1 else 2, estimate = FALSE
+    )
+  } else {
+    return_codes <- NULL
+    values <- NULL
+    opt <- NULL
+    qp_types <- NULL
+    if (qp_control$qp_type == "both") {
+      opt_lsei <- objective_fn(
+        v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
+        type = 1, estimate = FALSE
+      )
+      opt_solveQP <- objective_fn(
+        v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
+        type = 2, estimate = FALSE
+      )
+      out <- pick_qp_solution(opt_lsei, opt_solveQP)
+    } else {
+      type <- if (qp_control$qp_type == "lsei") 1 else 2
+      out <- objective_fn(
+        v, X0, X1, Z0, Z1, scale_factor_v, qp_control,
+        type = type, estimate = FALSE
+      )
+    }
+    best_qp_type <- out$qp_type
+  }
+
+  w <- out$w
+  v <- out$v
+  synth_Y <- as.numeric(Y0 %*% w)
+  effect <- as.numeric(Y1 - synth_Y)
+  loss_v <- crossprod(Z1 - Z0 %*% w) / T_pre
+  loss_w <- t(X1 - X0 %*% w) %*% diag(v) %*% (X1 - X0 %*% w)
+  if (any(is.na(w)) || any(is.na(v))) {
+    warning (
+      "Donor weights w or predictor weights v contain NA values, ",
+      "indicating optimization failure. Try adjusting control parameters in
+      'nloptr_control' and/or 'qp_control'."
     )
   }
-  best_qp_type <- out$qp_type
-}
-
-w <- out$w
-v <- out$v
-synth_Y <- as.numeric(Y0 %*% w)
-effect <- as.numeric(Y1 - synth_Y)
-loss_v <- crossprod(Z1 - Z0 %*% w) / T_pre
-loss_w <- t(X1 - X0 %*% w) %*% diag(v) %*% (X1 - X0 %*% w)
-if (any(is.na(w)) || any(is.na(v))) {
-  warning (
-    "Donor weights w or predictor weights v contain NA values, ",
-    "indicating optimization failure. Try adjusting control parameters in
-      'nloptr_control' and/or 'qp_control'."
-  )
-}
-if (synthlike_output) {
-  out <- stats::setNames(
-    vector("list", 7L),
-    c(
-      "solution.v", "solution.w", "loss.v", "loss.w",
-      "synthetic_Y", "effect", "optimization_info"
+  if (synthlike_output) {
+    out <- stats::setNames(
+      vector("list", 7L),
+      c(
+        "solution.v", "solution.w", "loss.v", "loss.w",
+        "synthetic_Y", "effect", "optimization_info"
+      )
     )
-  )
-  out$solution.v <- stats::setNames(data.frame(t(v)), rownames(X0))
-  out$solution.w <- matrix(
-    w, ncol = 1, dimnames = list(colnames(X0), "w.weight")
-  )
-  out$loss.v <- loss_v
-  out$loss.w <- loss_w
-  dimnames(out$loss.w) <- dimnames(loss_v)
-} else {
-  out <- stats::setNames(
-    vector("list", 7L),
-    c(
-      "solution_v", "solution_w", "loss_v", "loss_w",
-      "synthetic_Y", "effect", "optimization_info"
+    out$solution.v <- stats::setNames(data.frame(t(v)), rownames(X0))
+    out$solution.w <- matrix(
+      w, ncol = 1, dimnames = list(colnames(X0), "w.weight")
     )
+    out$loss.v <- loss_v
+    out$loss.w <- loss_w
+    dimnames(out$loss.w) <- dimnames(loss_v)
+  } else {
+    out <- stats::setNames(
+      vector("list", 7L),
+      c(
+        "solution_v", "solution_w", "loss_v", "loss_w",
+        "synthetic_Y", "effect", "optimization_info"
+      )
+    )
+    out$solution_v <- stats::setNames(v, rownames(X0))
+    out$solution_w <- w
+    out$loss_v <- loss_v[1]
+    out$loss_w <- loss_w[1]
+  }
+  out$synthetic_Y <- synth_Y
+  out$effect <- effect
+  out$optimization_info <- list(
+    all_loss_v = values,
+    return_codes = return_codes,
+    qp_types = qp_types,
+    best_nloptr_run = opt,
+    best_qp_type = best_qp_type
   )
-  out$solution_v <- stats::setNames(v, rownames(X0))
-  out$solution_w <- w
-  out$loss_v <- loss_v[1]
-  out$loss_w <- loss_w[1]
-}
-out$synthetic_Y <- synth_Y
-out$effect <- effect
-out$optimization_info <- list(
-  all_loss_v = values,
-  return_codes = return_codes,
-  qp_types = qp_types,
-  best_nloptr_run = opt,
-  best_qp_type = best_qp_type
-)
-out
+  out
 }
 
 

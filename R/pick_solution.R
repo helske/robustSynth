@@ -1,3 +1,5 @@
+#' Function to run nlopt possibly twice using different QP solvers
+#' @noRd
 run_nloptr <- function(v, X0, X1, Z0, Z1, scale, nloptr_control, qp_control) {
   K <- length(v)
   if (qp_control$qp_type == "both") {

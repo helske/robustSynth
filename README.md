@@ -1,26 +1,37 @@
 
-# robustSynth
+# robustSynth: Fast and Robust Synthetic Control Method
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-A synthetic control method with improved improved numerical stability and 
-computational efficiency compared to 
-[`Synth`](https://cran.r-project.org/package=Synth) package for increasing the 
-likelihood of finding the actual optimum solution. This is achieved by using 
-robust set of optimization algorithms with diverse weight initializations.
+Synthetic control method implementation of `robustSynth` uses multiple random 
+initial values for predictor weights to improve the probability of convergence 
+to the global optimum. In contrast to 
+[`Synth`](https://cran.r-project.org/package=Synth) package, `robustSynth` 
+uses a computationally more efficient implementation of quadratic programming 
+solver of [`limSolve`](https://cran.r-project.org/package=limSolve) for donor 
+weight optimization, and numerical optimization algorithms of 
+[`nloptr`](https://cran.r-project.org/package=nloptr) for predictor weight 
+optimization, defaulting for a derivative-free Sbplx algorithm of 
+[NLOPT](http://github.com/stevengj/nlopt). 
+
+To further improve the performance of `robustSynth`, the optimization by
+multiple initial values can be parallelized using 
+[`future`](https://CRAN.R-project.org/package=future), with automatic progress
+reporting by [`progressr`](https://CRAN.R-project.org/package=progressr).
 
 ## Installation
 
-You can install the development version of robustSynth from github as
-
+You can install `robustSynth` from [CRAN](https://cran.r-project.org/) using
+```{r}
+install.packages("robustSynth")
+```
+and the development version from GitHub as
 ``` r
 remotes::install_github("helske/robustSynth")
 ```
 
 ## Example
-
-This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(robustSynth)

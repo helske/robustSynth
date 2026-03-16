@@ -10,7 +10,15 @@ Fast and robust synthetic control method analogous to Synth
 package, but with improved numerical stability and computational efficiency
 to ensure the returned solution is actually an optimum.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/helske/robustSynth}
+  \item Report bugs at \url{https://github.com/helske/robustSynth/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Jouni Helske \email{jouni.helske@iki.fi}
+\strong{Maintainer}: Jouni Helske \email{jouni.helske@iki.fi} (\href{https://orcid.org/0000-0001-7130-793X}{ORCID})
 
 }

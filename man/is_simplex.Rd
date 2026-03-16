@@ -9,8 +9,7 @@ is_simplex(x, K, tol = sqrt(.Machine$double.eps))
 \arguments{
 \item{x}{Vector to check.}
 
-\item{K}{Dimension of the simplex. No that there are no checks
-for K being positive integer.}
+\item{K}{Dimension of the simplex.}
 
 \item{tol}{Numeric tolerance for checking non-negativity and sum to 1.}
 }
