@@ -2,6 +2,7 @@
 # robustSynth: Fast and Robust Synthetic Control Method
 
 <!-- badges: start -->
+[![Codecov test coverage](https://codecov.io/gh/helske/robustSynth/graph/badge.svg)](https://app.codecov.io/gh/helske/robustSynth)
 <!-- badges: end -->
 
 Synthetic control method implementation of `robustSynth` uses multiple random 

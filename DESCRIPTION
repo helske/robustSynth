@@ -21,6 +21,8 @@ Imports:
     nloptr,
     progressr
 Suggests:
-    Synth
+    Synth,
+    testthat (>= 3.0.0)
 URL: https://github.com/helske/robustSynth
 BugReports: https://github.com/helske/robustSynth/issues
+Config/testthat/edition: 3
