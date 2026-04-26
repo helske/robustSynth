@@ -3,6 +3,7 @@
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/helske/robustSynth/graph/badge.svg)](https://app.codecov.io/gh/helske/robustSynth)
+[![R-CMD-check](https://github.com/helske/robustSynth/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/helske/robustSynth/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 Synthetic control method implementation of `robustSynth` uses multiple random 
